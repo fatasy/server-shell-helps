@@ -1,0 +1,40 @@
+#!/bin/bash
+
+DOMAIN=""
+PORT=""
+NGINX_FILE="adonis-5-nginx"
+
+for arg in "$@"; do
+  if [[ "$arg" == "-d="* ]]; then
+    DOMAIN="${arg#*=}"
+  fi
+
+  if [[ "$arg" == "-p="* ]]; then
+    PORT="${arg#*=}"
+  fi
+done
+
+[[ DOMAIN == "" ]] && echo "Use -d= para informa o domínio" && exit 0
+[[ PORT == "" ]] && echo "Use -p= para informa uma porta" && exit 0
+
+sudo apt-get update
+sudo apt-get install nginx
+
+NGINX_FILE_URL="https://raw.githubusercontent.com/fatasy/deploy-git-hooks/main/$NGINX_FILE"
+NGINX_SITE_DIR="/etc/nginx/sites-available/$DOMAIN"
+
+curl -sSfO "$NGINX_FILE_URL"
+mkdir -p $NGINX_SITE_DIR
+
+if [ $? -eq 0 ]; then
+  mv "$NGINX_FILE" "$NGINX_SITE_DIR"
+  echo "nginx file created"
+else
+  echo "Failed to download nginx file."
+fi
+
+sed -i "s/DOMAIN/$DOMAIN/g; s/PORT/$PORT/g" "$NGINX_SITE_DIR"
+
+sudo ln -s $NGINX_SITE_DIR /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
