@@ -22,7 +22,8 @@ while read oldrev newrev ref
       [[ -e "$APP_ENV" ]] && cp "$APP_ENV" "$DEPLOY_DIR" || echo "Arquivo ENV não encontrado"
       [[ -d "$DB_MIGRATIONS" ]] && node ace migration:run
       node ace build --production
-    
+      [[ -e "$APP_ENV" ]] && cp "$APP_ENV" "$DEPLOY_DIR" || echo "Arquivo ENV não encontrado"
+      
       pm2 restart ecosystem.config.js
       echo "Deploy concluído."
   fi
